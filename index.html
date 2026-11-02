@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>thIAguinho IPTV WEB — Samsung J5200</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;min-height:100%;background:#09121f;color:#edf5ff;font-family:Arial,Helvetica,sans-serif}
+body{overflow-x:hidden}
+header{padding:16px 20px;background:#111f32;border-bottom:2px solid #2b719e}
+header strong{font-size:23px;letter-spacing:.4px}
+header small{display:block;color:#acc4d5;margin-top:5px;font-size:12px}
+main{width:100%;max-width:1400px;margin:0 auto;padding:14px}
+section{background:#122237;border:1px solid #2c455e;border-radius:9px;padding:16px;margin-bottom:14px}
+h2{font-size:20px;margin:0 0 12px}
+p{line-height:1.5}
+label{display:block;margin:9px 0 6px;color:#cce2f5}
+input,textarea,select,button{font-family:Arial,Helvetica,sans-serif;font-size:17px}
+input,textarea,select{width:100%;max-width:100%;border:2px solid #4d6a85;border-radius:6px;background:#091726;color:#fff;padding:12px;outline:none}
+input:focus,textarea:focus,select:focus,button:focus,.channel:focus{outline:3px solid #f6c24d;outline-offset:2px}
+textarea{height:120px;resize:vertical}
+button{cursor:pointer;background:#227ab3;border:1px solid #4eb4ed;border-radius:6px;color:#fff;padding:11px 15px;margin:4px 6px 4px 0;font-weight:bold}
+button.secondary{background:#24415a}
+button.warn{background:#793337}
+button:disabled{opacity:.5}
+.row{overflow:hidden}
+.col{float:left;width:50%;padding:0 8px}
+.row .col:first-child{padding-left:0}
+.row .col:last-child{padding-right:0}
+.note{font-size:13px;color:#b6d0e2}
+.warning{color:#ffda85}
+#status{min-height:48px;padding:12px;border-left:4px solid #53a9ea;background:#0b1d31;white-space:pre-line}
+#status.error{border-color:#f06b72}
+#video{display:block;background:#000;width:100%;height:auto;max-height:64vh;min-height:190px}
+#playerBox{background:#000;border:1px solid #3a4b5b}
+#nowPlaying{font-size:16px;color:#e3f5ff;min-height:25px;margin-bottom:9px;word-wrap:break-word}
+#diag{white-space:pre-line;word-break:break-word;font-size:14px;line-height:1.6;background:#081522;border:1px solid #42536b;padding:12px}
+#channels{max-height:430px;overflow-y:auto;margin-top:10px}
+.channel{display:block;width:100%;text-align:left;background:#182e46;border:1px solid #3c5772;min-height:49px;margin:4px 0;padding:10px;white-space:normal;word-wrap:break-word}
+.channel.active{background:#135a79;border-color:#7fd8ff}
+.channel .number{display:inline-block;min-width:44px;color:#9fbfd2}
+#channelCount{font-size:14px;color:#d1e0ed}
+#pageCount{margin:0 10px}
+#fileInput{padding:9px}
+.hidden{display:none}
+.footer{font-size:12px;color:#93acc0;text-align:center;padding:14px}
+@media(max-width:760px){main{padding:8px}section{padding:12px}.col{float:none;width:100%;padding:0!important}header{padding:12px}header strong{font-size:19px}#video{min-height:190px}button{font-size:15px}}
+</style>
+</head>
+<body>
+<header><strong>thIAguinho IPTV WEB</strong><small>Samsung UN43J5200 · Navegador Legacy · Teste de compatibilidade</small></header>
+<main>
+<section>
+<h2>1. Diagnóstico da televisão</h2>
+<p class="note">Teste sem senha, sem lista IPTV e sem instalar aplicativo. Os resultados ficam somente nesta tela.</p>
+<button id="diagnose" type="button">Verificar navegador</button>
+<button id="testMp4" type="button" class="secondary">Testar vídeo MP4 público</button>
+<button id="testHls" type="button" class="secondary">Testar transmissão HLS pública</button>
+<div id="diag" aria-live="polite">Clique em "Verificar navegador".</div>
+</section>
+<section>
+<h2>2. Fonte IPTV</h2>
+<p class="warning note">Privacidade: não publique seu usuário, senha, link privado ou arquivo M3U no GitHub. Os dados digitados aqui permanecem nesta sessão do navegador; este site não possui banco de dados, rastreador ou servidor de login.</p>
+<label for="sourceMode">Tipo de acesso</label>
+<select id="sourceMode">
+<option value="direct">Link direto MP4 / M3U8</option>
+<option value="playlist">Lista M3U (texto, link ou arquivo)</option>
+<option value="xtream">Conta Xtream compatível (servidor, usuário e senha)</option>
+</select>
+<div id="directPanel">
+<label for="directUrl">Endereço completo do vídeo</label>
+<input id="directUrl" type="text" spellcheck="false" autocomplete="off" placeholder="https://servidor.exemplo/canal.m3u8">
+<button id="directLoad" type="button">Adicionar canal</button>
+</div>
+<div id="playlistPanel" class="hidden">
+<label for="m3uUrl">Link remoto de lista M3U (opcional)</label>
+<input id="m3uUrl" type="text" spellcheck="false" autocomplete="off" placeholder="https://servidor.exemplo/lista.m3u">
+<button id="m3uFetch" type="button">Carregar link</button>
+<label for="m3uText">Ou cole o conteúdo M3U</label>
+<textarea id="m3uText" spellcheck="false" placeholder="#EXTM3U&#10;#EXTINF:-1 group-title=&quot;Abertos&quot;,Canal de exemplo&#10;https://servidor.exemplo/canal.m3u8"></textarea>
+<button id="m3uParse" type="button">Ler lista colada</button>
+<label for="fileInput">Ou selecione um arquivo M3U do dispositivo (quando suportado)</label>
+<input id="fileInput" type="file" accept=".m3u,.m3u8,text/plain">
+</div>
+<div id="xtreamPanel" class="hidden">
+<p class="note">Requer API do fornecedor acessível pelo navegador e liberação CORS. O GitHub Pages não possui proxy. Usuário e senha vão somente ao endereço do servidor informado.</p>
+<label for="server">Servidor do serviço (com http:// ou https:// e porta, se houver)</label>
+<input id="server" type="text" spellcheck="false" autocomplete="off" placeholder="https://servidor.exemplo:porta">
+<div class="row">
+<div class="col"><label for="username">Usuário</label><input id="username" type="text" autocomplete="off" spellcheck="false"></div>
+<div class="col"><label for="password">Senha</label><input id="password" type="password" autocomplete="off" spellcheck="false"></div>
+</div>
+<label for="ext">Formato de transmissão</label>
+<select id="ext"><option value="m3u8">HLS (.m3u8)</option><option value="ts">MPEG-TS (.ts)</option></select>
+<button id="xtreamLoad" type="button">Carregar canais autorizados</button>
+<button id="clearFields" type="button" class="warn">Limpar acesso</button>
+</div>
+<div id="status" role="status" aria-live="polite">Pronto para testar o navegador e configurar um canal.</div>
+</section>
+<section>
+<h2>3. Reprodutor</h2>
+<div id="nowPlaying">Nenhum canal selecionado.</div>
+<div id="playerBox"><video id="video" controls preload="none" playsinline webkit-playsinline></video></div>
+<button id="play" type="button">Reproduzir</button>
+<button id="stop" type="button" class="secondary">Parar</button>
+<button id="prev" type="button" class="secondary">Canal anterior</button>
+<button id="next" type="button" class="secondary">Próximo canal</button>
+<button id="full" type="button" class="secondary">Tela cheia</button>
+<p class="note">Controle remoto: setas ▲/▼ percorrem os canais; OK seleciona; CH +/− troca de canal quando o navegador permitir. Se o navegador bloquear a reprodução automática, pressione Reproduzir.</p>
+</section>
+<section>
+<h2>4. Canais</h2>
+<div class="row">
+<div class="col"><label for="search">Pesquisar canal</label><input id="search" type="text" placeholder="Buscar por nome"></div>
+<div class="col"><label for="group">Categoria</label><select id="group"><option value="">Todas</option></select></div>
+</div>
+<div id="channelCount">Nenhuma lista carregada.</div>
+<div id="channels"></div>
+<button id="pagePrev" type="button" class="secondary">Página anterior</button><span id="pageCount">0 / 0</span><button id="pageNext" type="button" class="secondary">Próxima página</button>
+<button id="clearList" type="button" class="warn">Limpar canais</button>
+</section>
+<div class="footer">thIAguinho Soluções · Página estática · Sem coleta de credenciais · Use apenas fontes de transmissão autorizadas.</div>
+</main>
+<script>
+(function(){
+"use strict";
+var channels=[],filtered=[],current=-1,page=0,pageSize=70,hls=null,focusIndex=-1;
+function byId(id){return document.getElementById(id);}
+function text(el,value){if(typeof el==="string"){el=byId(el);}if("textContent" in el){el.textContent=String(value);}else{el.innerText=String(value);}}
+function on(id,ev,fn){if(byId(id).addEventListener){byId(id).addEventListener(ev,fn,false);}else{byId(id).attachEvent("on"+ev,fn);}}
+function show(id,yes){byId(id).className=yes?"":"hidden";}
+function status(message,error){text("status",message);byId("status").className=error?"error":"";}
+function trim(s){return String(s||"").replace(/^\s+|\s+$/g,"");}
+function validUrl(value){return /^https?:\/\/[^ ]+/i.test(trim(value));}
+function mask(value){return trim(value).replace(/([?&](?:username|password|token|user|pass|key|auth)=)[^&]*/gi,"$1***");}
+function isHls(url){return /\.m3u8(?:[?#]|$)/i.test(url)||/\/hls\//i.test(url);}
+function errMessage(){return "Não foi possível reproduzir este canal. Confira o formato, HTTPS, codecs e compatibilidade do navegador. A TV também pode bloquear o stream."; }
+function stopVideo(){
+  try{byId("video").pause();}catch(e){}
+  if(hls){try{hls.destroy();}catch(ex){} hls=null;}
+  try{byId("video").removeAttribute("src");byId("video").load();}catch(e2){}
+}
+function playVideo(){
+  try{var result=byId("video").play();if(result&&typeof result["catch"]==="function"){result["catch"](function(){status("Pressione Reproduzir diretamente no player: o navegador pode exigir interação do usuário.",true);});}}
+  catch(ex){status("O navegador recusou iniciar o vídeo.",true);}
+}
+function setSource(url){
+  var video=byId("video"), nativeHls="";
+  stopVideo();
+  nativeHls=(video.canPlayType("application/vnd.apple.mpegurl")||video.canPlayType("application/x-mpegURL"));
+  if(!isHls(url)||nativeHls){
+    video.src=url;
+    video.load();
+    status("Tentando reprodução nativa. Se não iniciar, pressione Reproduzir.");
+    playVideo();
+    return;
+  }
+  if(typeof window.MediaSource==="undefined"||typeof window.Promise==="undefined"){
+    video.src=url;video.load();
+    status("HLS nativo não confirmado e MSE/Promise indisponível. Tentando ligação direta; a TV pode não suportar este formato.",true);
+    playVideo();return;
+  }
+  if(window.Hls&&window.Hls.isSupported()){
+    startHls(url);return;
+  }
+  status("Buscando mecanismo HLS para navegador moderno...");
+  var s=document.createElement("script");
+  s.src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js";
+  s.onload=function(){if(window.Hls&&window.Hls.isSupported()){startHls(url);}else{status("Navegador não compatível com hls.js. Tente MP4 ou outro formato.",true);}};
+  s.onerror=function(){status("Não foi possível carregar o mecanismo HLS. Confira internet, certificado HTTPS e suporte MSE.",true);};
+  document.getElementsByTagName("head")[0].appendChild(s);
+}
+function startHls(url){
+  try{
+    hls=new window.Hls({enableWorker:false,lowLatencyMode:false});
+    hls.on(window.Hls.Events.ERROR,function(ev,data){if(data&&data.fatal){status("Erro de reprodução HLS. Confira permissão CORS, codecs, HTTPS e alcance da fonte.",true);}});
+    hls.loadSource(url);hls.attachMedia(byId("video"));
+    hls.on(window.Hls.Events.MANIFEST_PARSED,function(){playVideo();status("Manifesto HLS carregado. Aguardando vídeo...");});
+  }catch(ex){status("Não foi possível iniciar HLS neste navegador.",true);}
+}
+function playIndex(index){
+  if(index<0||index>=channels.length){return;}
+  current=index;
+  text("nowPlaying",channels[index].name+" · "+(channels[index].group||"Sem categoria"));
+  setSource(channels[index].url);
+  draw();
+}
+function channelChange(delta){
+  if(!channels.length){status("Carregue uma fonte antes de mudar de canal.",true);return;}
+  playIndex((current+delta+channels.length)%channels.length);
+}
+function attr(line,name){
+  var rx=new RegExp("(?:^|\\s)"+name+"\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s,]+))","i");
+  var m=rx.exec(line);return m?(m[1]||m[2]||m[3]||""):"";
+}
+function parseM3u(data){
+  var lines=String(data).replace(/\r/g,"").split("\n"),out=[],name="",group="",line,comma,i,url;
+  for(i=0;i<lines.length;i++){
+    line=trim(lines[i]);
+    if(!line||line.charAt(0)==="#"&&line.indexOf("#EXTINF")!==0){continue;}
+    if(line.indexOf("#EXTINF")===0){
+      comma=line.indexOf(",");
+      name=comma>=0?trim(line.substring(comma+1)):"";
+      if(!name){name=attr(line,"tvg-name");}
+      group=attr(line,"group-title");
+    }else if(/^https?:\/\//i.test(line)){
+      url=line;
+      out.push({name:name||"Canal "+(out.length+1),url:url,group:group||"Outros"});
+      name="";group="";
+      if(out.length>=15000){break;}
+    }
+  }
+  return out;
+}
+function xhrJson(url,cb){xhrText(url,function(err,data){if(err){cb(err);}else{try{cb(null,JSON.parse(data));}catch(e){cb("Resposta da API não é JSON válido.");}}});}
+function xhrText(url,cb){
+  try{
+    var req=new XMLHttpRequest();req.open("GET",url,true);req.timeout=20000;
+    req.onreadystatechange=function(){if(req.readyState===4){if(req.status>=200&&req.status<300){cb(null,req.responseText);}else{cb("Falha na conexão (HTTP "+req.status+"). O servidor pode bloquear CORS ou HTTPS.");}}};
+    req.onerror=function(){cb("Rede, CORS, HTTP/HTTPS ou DNS bloquearam a requisição.");};
+    req.ontimeout=function(){cb("Tempo limite excedido ao consultar a fonte.");};
+    req.send(null);
+  }catch(e){cb("Este navegador não conseguiu acessar o endereço solicitado.");}
+}
+function setChannels(list){
+  channels=list||[];current=-1;page=0;focusIndex=-1;
+  var groups={},grp,i,sel=byId("group"),opt;
+  while(sel.options.length>1){sel.remove(1);}
+  for(i=0;i<channels.length;i++){grp=channels[i].group||"Outros";if(!groups[grp]){groups[grp]=true;opt=document.createElement("option");opt.value=grp;text(opt,grp);sel.appendChild(opt);}}
+  sel.value="";byId("search").value="";
+  refresh();
+  status(channels.length+" canal(is) carregado(s) apenas na memória desta sessão.");
+}
+function refresh(){
+  var q=trim(byId("search").value).toLowerCase(),g=byId("group").value,i,item;
+  filtered=[];
+  for(i=0;i<channels.length;i++){item=channels[i];if((!g||item.group===g)&&(!q||item.name.toLowerCase().indexOf(q)>=0)){filtered.push(i);}}
+  page=0;draw();
+}
+function draw(){
+  var box=byId("channels"),count=filtered.length,start=page*pageSize,end=Math.min(start+pageSize,count),pages=Math.ceil(count/pageSize),i,j,b,span,sub;
+  while(box.firstChild){box.removeChild(box.firstChild);}
+  for(i=start;i<end;i++){
+    j=filtered[i];b=document.createElement("button");b.type="button";b.className="channel"+(j===current?" active":"");
+    b.setAttribute("data-index",String(j));
+    span=document.createElement("span");span.className="number";text(span,String(j+1)+".");b.appendChild(span);
+    sub=document.createElement("span");text(sub,channels[j].name);b.appendChild(sub);
+    b.onclick=(function(n){return function(){playIndex(n);};})(j);
+    box.appendChild(b);
+  }
+  text("channelCount",channels.length+" canais no total · "+count+" nesta pesquisa.");
+  text("pageCount",count?(page+1)+" / "+pages:"0 / 0");
+  byId("pagePrev").disabled=page===0;byId("pageNext").disabled=page+1>=pages;
+}
+function diagnostic(){
+  var v=byId("video"),mp4=v.canPlayType("video/mp4; codecs=\"avc1.42E01E, mp4a.40.2\"")||"não",hlsNative=v.canPlayType("application/vnd.apple.mpegurl")||v.canPlayType("application/x-mpegURL")||"não";
+  var result="Agente: "+navigator.userAgent+"\n"+
+    "Video HTML5: "+(!!v.canPlayType?"sim":"não")+"\n"+
+    "MP4 H.264 + AAC: "+mp4+"\n"+
+    "HLS nativo: "+hlsNative+"\n"+
+    "Media Source Extensions (MSE): "+(typeof window.MediaSource!=="undefined"?"sim":"não")+"\n"+
+    "Promise: "+(typeof window.Promise!=="undefined"?"sim":"não")+"\n"+
+    "XMLHttpRequest: "+(typeof window.XMLHttpRequest!=="undefined"?"sim":"não")+"\n"+
+    "Protocolo da página: "+location.protocol+"\n"+
+    "OBS.: suporte declarado não garante que um stream específico funcione.";
+  text("diag",result);
+}
+function switchMode(){
+  var m=byId("sourceMode").value;show("directPanel",m==="direct");show("playlistPanel",m==="playlist");show("xtreamPanel",m==="xtream");
+}
+function loadXtream(){
+  var server=trim(byId("server").value).replace(/\/+$/,""),user=trim(byId("username").value),pass=byId("password").value,ext=byId("ext").value;
+  if(!validUrl(server)||!user||!pass){status("Informe servidor com http(s), usuário e senha.",true);return;}
+  if(location.protocol==="https:"&&/^http:\/\//i.test(server)){status("Este servidor usa HTTP. O GitHub Pages usa HTTPS e a TV pode bloquear a conexão por conteúdo misto. Peça ao provedor o endereço HTTPS.",true);return;}
+  status("Consultando a API do servidor informado (sem salvar credenciais)...");
+  var common="?username="+encodeURIComponent(user)+"&password="+encodeURIComponent(pass);
+  var api=server+"/player_api.php"+common;
+  xhrJson(api+"&action=get_live_categories",function(catErr,categories){
+    var lookup={},i,c;
+    if(!catErr&&categories&&typeof categories.length==="number"){
+      for(i=0;i<categories.length;i++){c=categories[i];lookup[String(c.category_id)]=c.category_name||"Outros";}
+    }
+    xhrJson(api+"&action=get_live_streams",function(err,streams){
+      if(err){status("Não foi possível carregar canais. "+err+"\nSe for erro CORS, o Pages não pode contorná-lo sozinho.",true);return;}
+      if(!streams||typeof streams.length!=="number"){status("A API respondeu, mas não retornou uma lista reconhecível de canais.",true);return;}
+      var list=[],s,id,url;
+      for(i=0;i<streams.length&&list.length<15000;i++){
+        s=streams[i];id=s.stream_id;
+        if(id===undefined||id===null){continue;}
+        url=server+"/live/"+encodeURIComponent(user)+"/"+encodeURIComponent(pass)+"/"+encodeURIComponent(id)+"."+ext;
+        list.push({name:String(s.name||"Canal "+(i+1)),group:lookup[String(s.category_id)]||"Categoria "+(s.category_id||"geral"),url:url});
+      }
+      setChannels(list);
+    });
+  });
+}
+on("diagnose","click",diagnostic);
+on("testMp4","click",function(){stopVideo();text("nowPlaying","Teste público MP4 · Flor");setSource("https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4");});
+on("testHls","click",function(){stopVideo();text("nowPlaying","Teste público HLS");setSource("https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8");});
+on("sourceMode","change",switchMode);
+on("directLoad","click",function(){var url=trim(byId("directUrl").value);if(!validUrl(url)){status("Digite uma URL HTTP ou HTTPS válida.",true);return;}setChannels([{name:"Canal direto",group:"Direto",url:url}]);playIndex(0);});
+on("m3uParse","click",function(){var list=parseM3u(byId("m3uText").value);if(!list.length){status("A lista não possui entradas #EXTINF seguidas por URLs HTTP(S) válidas.",true);return;}setChannels(list);});
+on("m3uFetch","click",function(){var url=trim(byId("m3uUrl").value);if(!validUrl(url)){status("Informe uma URL de lista M3U válida.",true);return;}if(location.protocol==="https:"&&/^http:\/\//i.test(url)){status("O navegador pode bloquear uma lista HTTP em página HTTPS. Use um endereço HTTPS.",true);return;}status("Buscando a lista. O servidor precisa permitir CORS...");xhrText(url,function(err,data){if(err){status("Erro ao carregar lista: "+err,true);return;}var list=parseM3u(data);if(!list.length){status("A resposta não contém canais M3U reconhecidos.",true);return;}setChannels(list);});});
+on("fileInput","change",function(){var f=this.files&&this.files[0];if(!f||typeof window.FileReader==="undefined"){status("Este navegador não suporta seleção local de arquivo. Cole a lista M3U.",true);return;}var reader=new FileReader();reader.onload=function(){var list=parseM3u(reader.result||"");if(!list.length){status("Arquivo sem entradas M3U reconhecidas.",true);return;}setChannels(list);};reader.onerror=function(){status("Não foi possível ler o arquivo M3U.",true);};reader.readAsText(f);});
+on("xtreamLoad","click",loadXtream);
+on("clearFields","click",function(){byId("server").value="";byId("username").value="";byId("password").value="";byId("directUrl").value="";byId("m3uUrl").value="";byId("m3uText").value="";stopVideo();channels=[];filtered=[];current=-1;refresh();status("Campos de acesso e canais temporários limpos.");});
+on("play","click",playVideo);
+on("stop","click",function(){stopVideo();status("Reprodução interrompida.");});
+on("prev","click",function(){channelChange(-1);});
+on("next","click",function(){channelChange(1);});
+on("full","click",function(){var v=byId("video");try{if(v.requestFullscreen){v.requestFullscreen();}else if(v.webkitEnterFullscreen){v.webkitEnterFullscreen();}else if(v.webkitRequestFullscreen){v.webkitRequestFullscreen();}else{status("O navegador desta TV não oferece API de tela cheia.",true);}}catch(e){status("Tela cheia não suportada pelo navegador.",true);}});
+on("search","input",refresh);
+on("group","change",refresh);
+on("pagePrev","click",function(){if(page>0){page--;draw();}});
+on("pageNext","click",function(){if((page+1)*pageSize<filtered.length){page++;draw();}});
+on("clearList","click",function(){stopVideo();channels=[];filtered=[];current=-1;page=0;refresh();text("nowPlaying","Nenhum canal selecionado.");status("Canais removidos desta sessão.");});
+on("video","error",function(){status(errMessage(),true);});
+if(document.addEventListener){document.addEventListener("keydown",function(e){
+  e=e||window.event;
+  var target=e.target||e.srcElement,tag=(target&&target.tagName||"").toLowerCase(),key=e.which||e.keyCode;
+  if(tag==="input"||tag==="textarea"||tag==="select"){return;}
+  if(key===427||key===33){channelChange(1);e.preventDefault&&e.preventDefault();}
+  else if(key===428||key===34){channelChange(-1);e.preventDefault&&e.preventDefault();}
+  else if(key===38||key===40){
+    if(!filtered.length){return;}
+    var list=byId("channels").getElementsByTagName("button"),at=-1,j;
+    for(j=0;j<list.length;j++){if(document.activeElement===list[j]){at=j;break;}}
+    at=(at+(key===40?1:-1)+list.length)%list.length;
+    list[at].focus();e.preventDefault&&e.preventDefault();
+  }else if(key===13&&tag==="body"&&filtered.length){playIndex(filtered[0]);}
+},false);}
+diagnostic();draw();switchMode();
+})();
+</script>
+</body>
+</html>
